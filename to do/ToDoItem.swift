@@ -7,10 +7,11 @@
 
 import Foundation
 
-class ToDoIteam {
+class ToDoItems: Identifiable {
     //properties
     var title = " "
     var isImportant = false
+    var id = UUID()
     
     init(title: String, isImportant: Bool = false) {
             self.title = title
