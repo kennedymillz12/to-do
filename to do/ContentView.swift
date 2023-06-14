@@ -8,8 +8,15 @@
 import SwiftUI
 
 struct ContentView: View {
-    @State var toDoItems: [ToDoItems] = []
+    @Environment(\.managedObjectContext) var context
+    
+    //@State var toDoItems: [ToDoItems] = []
     @State private var showNewTask = false
+    
+    @FetchRequest(
+        entity: ToDo.entity(), sortDescriptors: [ NSSortDescriptor(keyPath: \ToDo.id, ascending: false) ])
+    
+    var toDoItems: FetchedResults<ToDo>
     
     var body: some View {
         VStack {
@@ -32,22 +39,31 @@ struct ContentView: View {
             
             List {
                 ForEach(toDoItems){toDoItems in
-                    Text(toDoItems.title)
                     if toDoItems.isImportant == true {
-                        Text("‼️" + toDoItems.title)
+                        Text("‼️" + (toDoItems.title ?? "No title"))
                     } else {
-                        Text(toDoItems.title)
+                        Text(toDoItems.title ?? "No title")
                     }
                 }
+                .onDelete(perform: deleteTask)
             }
         }
-            .padding()
-            if showNewTask {
-                NewToDoView(title: "", isImportant: false, toDoItems: .constant([]), showNewTask: $showNewTask)
+        .padding()
+        if showNewTask {
+            NewToDoView(title: "", isImportant: false, toDoItems: .constant([]), showNewTask: $showNewTask)
         }
     }
-    
-    
+    private func deleteTask(offsets: IndexSet) {
+        withAnimation {
+            offsets.map { toDoItems[$0] }.forEach(context.delete)
+            
+            do {
+                try context.save()
+            } catch {
+                print(error)
+            }
+        }
+    }
     struct ContentView_Previews: PreviewProvider {
         static var previews: some View {
             ContentView()

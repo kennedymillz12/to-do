@@ -8,6 +8,8 @@
 import SwiftUI
 
 struct NewToDoView: View {
+    @Environment(\.managedObjectContext) var context
+    
     @State var title: String
     @State var isImportant: Bool
     
@@ -17,40 +19,47 @@ struct NewToDoView: View {
     var body: some View {
         VStack{
             Text("Add a new task")
-            .font(.title)
-            .fontWeight(.bold)
-        TextField("Enter task description", text: $title)
+                .font(.title)
+                .fontWeight(.bold)
+            TextField("Enter task description.", text: $title)
             // $ represents 2 way binding; reads value and update varibale at the same time
                 .padding()
                 .background(Color(.systemGroupedBackground))
                 .cornerRadius(15)
                 .padding()
             
-        Toggle(isOn: $isImportant) {
-            Text("Is it important?")
+            Toggle(isOn: $isImportant) {
+                Text("Is it important?")
             }
-        .padding()
-    Button(action: {
-        self.addTask(title: self.title, isImportant: self.isImportant)
-        self.showNewTask = false
-    }) {
-        Text("Add")
+            .padding()
+            Button(action: {
+                self.addTask(title: self.title, isImportant: self.isImportant)
+                self.showNewTask = false
+            }) {
+                Text("Add")
             }
-        .padding()
-        .background(Color(.systemGroupedBackground))
-        .cornerRadius(15)
-        .padding()
+            .padding()
+            .background(Color(.systemGroupedBackground))
+            .cornerRadius(15)
+            .padding()
         }
     }
     
     private func addTask(title: String, isImportant: Bool = false) {
-            let task = ToDoItems(title: title, isImportant: isImportant)
-            toDoItems.append(task)
+        let task = ToDo(context: context)
+        task.id = UUID()
+        task.title = title
+        task.isImportant = isImportant
+        
+        do {
+            try context.save()
+        } catch {
+            print(error)
         }
-}
-
-struct NewToDoView_Previews: PreviewProvider {
-    static var previews: some View {
-        NewToDoView(title : " ", isImportant: false, toDoItems: .constant([]), showNewTask: .constant(true))
     }
 }
+    struct NewToDoView_Previews: PreviewProvider {
+        static var previews: some View {
+            NewToDoView(title : " ", isImportant: false, toDoItems: .constant([]), showNewTask: .constant(true))
+        }
+    }
